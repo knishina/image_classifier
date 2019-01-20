@@ -17,27 +17,27 @@ import argparse
 import FUtilities
 
 
-parser = argpars.ArgumentParser()
-parser.add_argument("data_dir", nargs = "*", action="store", help="Store data in folder with subfolders labeled test, train, valid.  Input name of the primary folder here and the program will extract the rest.", default= "./flowers/")
+parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", dest="gpu", action="store", help="Default is gpu", default="gpu")
 parser.add_argument("--checkpoint_path", dest="checkpoint_path", action="store", help="Default is densenet121_checkpoint.pth", default="./densenet121_checkpoint.pth")
+parser.add_argument('--save_dir', dest="save_dir", action="store", default="./checkpoint.pth")
 parser.add_argument("--hidden_layers", dest="hidden_layers", action="store", type=int, help="Default is 512", default=512)
 parser.add_argument("--learning_rate", dest= "learning_rate", action="store", type=int, help="Default is 0.001", default=0.001)
 parser.add_argument("--epochs", dest="epochs", action="store", type=int, help="Default is 10", default=10)
 
 par = parser.parse_args()
-where = par.data_dir
-checkpoint_path = par.save_dir
+checkpoint_path = par.checkpoint_path
 learning_rate = par.learning_rate
 hidden_layers = par.hidden_layers
 power = par.gpu
 epochs = par.epochs
+path = par.save_dir
 
 
 
-trainloader, validloader, testloader = FUtilities.load_data(where)
-model, optimizer, criterion = FUtilities.build_model(hidden_layers, learning_rate, class_to_idx, power)
+trainloader, validloader, testloader, class_to_idx = FUtilities.load_data()
+model, criterion, optimizer = FUtilities.build_model(hidden_layers, learning_rate, class_to_idx, power)
 FUtilities.train_model(model, learning_rate, criterion, optimizer, trainloader, validloader, power)
-FUtilities.save_checkpoint(checkpoint_path)
+FUtilities.save_checkpoint(model, optimizer, path, hidden_layers, learning_rate, epochs)
 
 print ("done.")

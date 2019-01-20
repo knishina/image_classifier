@@ -19,7 +19,7 @@ import argparse
 # get the data.
 def load_data():
     # paths for data.
-    data_dir = 'flowers'
+    data_dir = '../aipnd-project/flowers'
     train_dir = data_dir + '/train'
     valid_dir = data_dir + '/valid'
     test_dir = data_dir + '/test'
@@ -64,8 +64,8 @@ def load_data():
 
 
 # build model and set up network.
-def build_model(hidden_layers=512, learning_rate=0.001, class_to_idx, power="gpu"):
-    device = torch.device("cuda" if torch.cuda.is_available() and power="gpu" else "cpu")
+def build_model(hidden_layers, learning_rate, class_to_idx, power):
+    device = torch.device("cuda" if power and torch.cuda.is_available() else "cpu")
     model = models.densenet161(pretrained=True)
     for param in model.parameters():
         param.requires_grad = False
@@ -88,8 +88,8 @@ def build_model(hidden_layers=512, learning_rate=0.001, class_to_idx, power="gpu
 
 
 # train the model.
-def train_model(model, learning_rate, criterion, optimizer, trainloader, validloader, power="gpu"):
-    device = torch.device("cuda" if torch.cuda.is_available() and power="gpu" else "cpu")
+def train_model(model, learning_rate, criterion, optimizer, trainloader, validloader, power):
+    device = torch.device("cuda" if power and torch.cuda.is_available() else "cpu")
     model.train()
     epochs = 10
     steps = 0
@@ -134,35 +134,40 @@ def train_model(model, learning_rate, criterion, optimizer, trainloader, validlo
                       f"Valid accuracy: {accuracy/len(validloader):.3f}")
                 running_loss = 0
                 model.train()
+    return model
 
 
 # save the checkpoint.
-def save_checkpoint(checkpoint_path="densenet121_checkpoint.pth", hidden_layers=512, learning_rate=0.001, epochs=10):
-    state = {
+def save_checkpoint(model, optimizer, path, hidden_layers, learning_rate, epochs):
+    model.cpu
+    model.class_to_idx = train_data.class_to_idx
+    torch.save({
         "arch": "densenet121",
         "learning_rate": learning_rate,
         "hidden_layers": hidden_layers,
         "epochs": epochs,
         "state_dict": model.state_dict(),
         "optimizer" : optimizer.state_dict(),
-        "class_to_idx" : model.class_to_idx
-    }
+        "class_to_idx" : model.class_to_idx},
+        path)
+    print ("model is saved.")
 
 # load the checkpoint.
-def load_checkpoint(checkpoint_path="densenet121_checkpoint.pth"):
-    state = torch.load(checkpoint_path)
-
+def load_checkpoint(path="checkpoint.pth"):
+    state = torch.load(path)
     learning_rate = state["learning_rate"]
     class_to_idx = state["class_to_idx"]
     hidden_layers = state["hidden_layers"]
 
-    model = build_model(hidden_layers, learning_rate, class_to_idx)
-
-    model.load_state_dict(state["state_dict"])
-    optimizer = optim.Adam(model.classifier.parameters(), learning_rate=0.001)
+    model, _, _ = build_model(hidden_layers, learning_rate, class_to_idx, power="gpu")
+    
+    optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
     optimizer.load_state_dict(state["optimizer"])
 
-
+    model.load_state_dict(state["state_dict"])
+    return model
+    
+    
 # open & process data.
 def process_image(image_path):
     import_image = Image.open(image_path)
@@ -178,9 +183,9 @@ def process_image(image_path):
 
 
 # predict with processed picture
-def predict(image_path="flowers/test/80/image_01983.jpg", model, topk=5, power="gpu"):
+def predict(image_path, model, topk, power):
     model.eval()
-    device = torch.device("cuda" if torch.cuda.is_available() and power="gpu" else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     image = process_image(image_path)
     image = image.unsqueeze(0)
     image = image.float()
@@ -193,8 +198,9 @@ def predict(image_path="flowers/test/80/image_01983.jpg", model, topk=5, power="
         
     return top_prob.topk(topk)
 
-def output(image_path="flowers/test/80/image01983.jpg", model):
-    top_prob, top_classes = predict(check_image_path, model)
+def output(image_path, topk, model, power, class_to_idx, cat_to_name):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    top_prob, top_classes = predict(image_path, model, topk, power)
     top_classes = list(np.array(top_classes)[0])
 
     labels = []
@@ -206,5 +212,7 @@ def output(image_path="flowers/test/80/image01983.jpg", model):
     a = list(np.array(top_prob[0]))
     b = labels
 
+    print (a)
+    print (b)
     print(f"Correct classification: {a[0]}")
     print(f"Correct prediction: {b[0]}")
