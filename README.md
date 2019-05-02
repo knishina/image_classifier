@@ -1,11 +1,15 @@
-# Data Scientist Project
+# image_classifier
 
-Project code for Udacity's Data Scientist Nanodegree program. In this project, you will first develop code for an image classifier built with PyTorch, then you will convert it into a command line application.
+This project develops code for a to build a ML model to recognize different species of flowers.  The model utilizes a pre-trained network and was trained/validated using labeled data.  This project uses a GPU enabled workspace and was completed via the Udacity platform.
 
-In order to complete this project, you will need to use the GPU enabled workspaces within the classroom.  The files are all available here for your convenience, but running on your local CPU will likely not work well.
+### Data.
+The data for this project is quite large - in fact, it is so large it cannot be uploaded to Github.  If you would like the data for this project, you will want download it from the workspace in the Udacity classroom.  Completing the project is likely not possible on your local unless you have a GPU.  The project involves 102 different types of flowers, where there ~20 images per flower to train on.  Finally, the  trained classifier will be used to predict the type for new images of the flowers.
+![Different Flowers](somepath)
 
-You should also only enable the GPU when you need it. If you are not using the GPU, please disable it so you do not run out of time!
+<br />
 
-### Data
+### Output.
+The input picture is presented, and the resulting predictions and corresponding probabilities are presented as a bar chart.
+![Outcome](somepath)
 
-The data for this project is quite large - in fact, it is so large you cannot upload it onto Github.  If you would like the data for this project, you will want download it from the workspace in the classroom.  Though actually completing the project is likely not possible on your local unless you have a GPU.  You will be training using 102 different types of flowers, where there ~20 images per flower to train on.  Then you will use your trained classifier to see if you can predict the type for new images of the flowers.
+
